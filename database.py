@@ -83,3 +83,48 @@ async def save_application(data: dict, score: int):
             data["other_credit"], data.get("other_credit_amount", 0), score,
             "kutilmoqda", 0, datetime.now().strftime("%Y-%m-%d %H:%M")
         )
+
+
+async def get_user(user_id: int):
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT * FROM users WHERE user_id=$1", user_id)
+        return dict(row) if row else None
+
+
+async def set_status(user_id: int, status: str):
+    async with _pool.acquire() as conn:
+        await conn.execute("UPDATE users SET status=$1 WHERE user_id=$2", status, user_id)
+
+
+async def set_debt(user_id: int, amount: int):
+    async with _pool.acquire() as conn:
+        await conn.execute("UPDATE users SET debt=$1 WHERE user_id=$2", amount, user_id)
+
+
+async def decrease_debt(user_id: int, amount: int):
+    user = await get_user(user_id)
+    new_debt = max(0, (user["debt"] or 0) - amount)
+    await set_debt(user_id, new_debt)
+    return new_debt
+
+
+async def create_payment(user_id: int, filial_key: str, filial_name: str, amount: int):
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow("""
+        INSERT INTO payments (user_id, filial_key, filial_name, amount, status, created_at)
+        VALUES ($1,$2,$3,$4,$5,$6)
+        RETURNING id
+        """, user_id, filial_key, filial_name, amount, "kutilmoqda",
+             datetime.now().strftime("%Y-%m-%d %H:%M"))
+        return row["id"]
+
+
+async def get_payment(payment_id: int):
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT * FROM payments WHERE id=$1", payment_id)
+        return dict(row) if row else None
+
+
+async def set_payment_status(payment_id: int, status: str):
+    async with _pool.acquire() as conn:
+        await conn.execute("UPDATE payments SET status=$1 WHERE id=$2", status, payment_id)
