@@ -65,3 +65,44 @@ async def enter_amount(message: Message, state: FSMContext, bot: Bot):
         parse_mode="HTML",
         reply_markup=admin_payment_kb(payment_id)
     )
+
+    @router.callback_query(F.data.startswith("pay_ok_"))
+    async def approve_payment(callback: CallbackQuery, bot: Bot):
+        payment_id = int(callback.data.replace("pay_ok_", ""))
+        payment = await get_payment(payment_id)
+        if not payment or payment["status"] != "kutilmoqda":
+            await callback.answer("Bu to'lov allaqachon ko'rib chiqilgan.", show_alert=True)
+            return
+
+        await set_payment_status(payment_id, "tasdiqlangan")
+        new_debt = await decrease_debt(payment["user_id"], payment["amount"])
+
+        await callback.message.edit_reply_markup(reply_markup=None)
+        await callback.answer("Tasdiqlandi")
+
+        chek = (
+            f"🧾 <b>CHEK</b>\n"
+            f"━━━━━━━━━━━━━━\n"
+            f"🏢 Filial: {payment['filial_name']}\n"
+            f"💰 To'langan summa: {payment['amount']:,} so'm\n"
+            f"📅 Sana: {payment['created_at']}\n"
+            f"💳 Qolgan qarzdorlik: {new_debt:,} so'm\n"
+            f"━━━━━━━━━━━━━━\n"
+            f"✅ To'lovingiz uchun rahmat!"
+        )
+        await bot.send_message(payment["user_id"], chek, parse_mode="HTML")
+
+    @router.callback_query(F.data.startswith("pay_no_"))
+    async def reject_payment(callback: CallbackQuery, bot: Bot):
+        payment_id = int(callback.data.replace("pay_no_", ""))
+        payment = await get_payment(payment_id)
+        if not payment or payment["status"] != "kutilmoqda":
+            await callback.answer("Bu to'lov allaqachon ko'rib chiqilgan.", show_alert=True)
+            return
+        await set_payment_status(payment_id, "rad etilgan")
+        await callback.message.edit_reply_markup(reply_markup=None)
+        await callback.answer("Rad etildi")
+        await bot.send_message(
+            payment["user_id"],
+            f"❌ Sizning {payment['amount']:,} so'mlik to'lovingiz tasdiqlanmadi. Iltimos, admin bilan bog'laning."
+        )
