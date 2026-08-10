@@ -27,3 +27,20 @@ def calculate_score(data: dict) -> int:
     score += 10 if data["phone_years"] >= 2 else 0
     score += 20 if data["guarantor"] == "Ha" else 0
     return score
+
+
+@router.message(Command("ariza"))
+async def start_ariza(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        "Assalomu alaykum! 👋\nSafar Savdoga xush kelibsiz\n\n"
+        "Ism familiyangizni kiriting:"
+    )
+    await state.set_state(ArizaForm.full_name)
+
+
+@router.message(ArizaForm.full_name)
+async def get_full_name(message: Message, state: FSMContext):
+    await state.update_data(full_name=message.text)
+    await message.answer("Tug'ilgan yilingizni kiriting (masalan: 1995):")
+    await state.set_state(ArizaForm.birth_year)
