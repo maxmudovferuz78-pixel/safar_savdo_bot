@@ -44,3 +44,13 @@ async def get_full_name(message: Message, state: FSMContext):
     await state.update_data(full_name=message.text)
     await message.answer("Tug'ilgan yilingizni kiriting (masalan: 1995):")
     await state.set_state(ArizaForm.birth_year)
+
+
+@router.message(ArizaForm.birth_year)
+async def get_birth_year(message: Message, state: FSMContext):
+    if not message.text.isdigit():
+        await message.answer("Iltimos, yilni raqamda kiriting (masalan: 1995):")
+        return
+    await state.update_data(birth_year=int(message.text))
+    await message.answer("Telefon raqamingizni yuboring:", reply_markup=contact_kb())
+    await state.set_state(ArizaForm.phone)
