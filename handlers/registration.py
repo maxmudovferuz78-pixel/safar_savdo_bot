@@ -54,3 +54,17 @@ async def get_birth_year(message: Message, state: FSMContext):
     await state.update_data(birth_year=int(message.text))
     await message.answer("Telefon raqamingizni yuboring:", reply_markup=contact_kb())
     await state.set_state(ArizaForm.phone)
+
+
+@router.message(ArizaForm.phone, F.contact)
+async def get_phone_contact(message: Message, state: FSMContext):
+    await state.update_data(phone=message.contact.phone_number)
+    await message.answer("Qayerda ishlaysiz?", reply_markup=ReplyKeyboardRemove())
+    await state.set_state(ArizaForm.workplace)
+
+
+@router.message(ArizaForm.phone)
+async def get_phone_text(message: Message, state: FSMContext):
+    await state.update_data(phone=message.text)
+    await message.answer("Qayerda ishlaysiz?", reply_markup=ReplyKeyboardRemove())
+    await state.set_state(ArizaForm.workplace)
