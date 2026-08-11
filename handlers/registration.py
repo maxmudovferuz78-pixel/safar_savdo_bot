@@ -68,3 +68,10 @@ async def get_phone_text(message: Message, state: FSMContext):
     await state.update_data(phone=message.text)
     await message.answer("Qayerda ishlaysiz?", reply_markup=ReplyKeyboardRemove())
     await state.set_state(ArizaForm.workplace)
+
+
+@router.message(ArizaForm.workplace)
+async def get_workplace(message: Message, state: FSMContext):
+    await state.update_data(workplace=message.text)
+    await message.answer("Oylik daromadingiz qancha? (so'mda, faqat raqam yozing):")
+    await state.set_state(ArizaForm.income)
