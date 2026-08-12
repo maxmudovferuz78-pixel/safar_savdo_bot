@@ -96,3 +96,10 @@ async def get_family_status(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Qayerda yashaysiz? (viloyat/tuman):")
     await state.set_state(ArizaForm.address)
     await callback.answer()
+
+
+@router.message(ArizaForm.address)
+async def get_address(message: Message, state: FSMContext):
+    await state.update_data(address=message.text)
+    await message.answer("O'z uyingizmi yoki ijarada?", reply_markup=house_type_kb())
+    await state.set_state(ArizaForm.house_type)
