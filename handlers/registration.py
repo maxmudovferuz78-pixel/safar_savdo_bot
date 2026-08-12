@@ -86,3 +86,13 @@ async def get_income(message: Message, state: FSMContext):
     await state.update_data(income=int(cleaned))
     await message.answer("Oilaviy holatingiz:", reply_markup=family_status_kb())
     await state.set_state(ArizaForm.family_status)
+
+
+@router.callback_query(ArizaForm.family_status, F.data.startswith("fam_"))
+async def get_family_status(callback: CallbackQuery, state: FSMContext):
+    value = callback.data.replace("fam_", "")
+    await state.update_data(family_status=value)
+    await callback.message.edit_text(f"Oilaviy holat: {value}")
+    await callback.message.answer("Qayerda yashaysiz? (viloyat/tuman):")
+    await state.set_state(ArizaForm.address)
+    await callback.answer()
