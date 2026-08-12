@@ -75,3 +75,14 @@ async def get_workplace(message: Message, state: FSMContext):
     await state.update_data(workplace=message.text)
     await message.answer("Oylik daromadingiz qancha? (so'mda, faqat raqam yozing):")
     await state.set_state(ArizaForm.income)
+
+
+@router.message(ArizaForm.income)
+async def get_income(message: Message, state: FSMContext):
+    cleaned = message.text.replace(" ", "").replace(",", "")
+    if not cleaned.isdigit():
+        await message.answer("Iltimos, daromadni faqat raqamda yozing (masalan: 3000000):")
+        return
+    await state.update_data(income=int(cleaned))
+    await message.answer("Oilaviy holatingiz:", reply_markup=family_status_kb())
+    await state.set_state(ArizaForm.family_status)
