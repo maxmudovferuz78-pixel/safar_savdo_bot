@@ -123,3 +123,13 @@ async def get_phone_years(message: Message, state: FSMContext):
     await state.update_data(phone_years=int(message.text))
     await message.answer("Kafil (yaqin odam) bormi?", reply_markup=yes_no_kb())
     await state.set_state(ArizaForm.guarantor)
+
+
+@router.callback_query(ArizaForm.guarantor, F.data.startswith("yn_"))
+async def get_guarantor(callback: CallbackQuery, state: FSMContext):
+    value = callback.data.replace("yn_", "")
+    await state.update_data(guarantor=value)
+    await callback.message.edit_text(f"Kafil: {value}")
+    await callback.message.answer("Qaysi mahsulot olmoqchisiz?")
+    await state.set_state(ArizaForm.product)
+    await callback.answer()
