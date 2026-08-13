@@ -103,3 +103,13 @@ async def get_address(message: Message, state: FSMContext):
     await state.update_data(address=message.text)
     await message.answer("O'z uyingizmi yoki ijarada?", reply_markup=house_type_kb())
     await state.set_state(ArizaForm.house_type)
+
+
+@router.callback_query(ArizaForm.house_type, F.data.startswith("house_"))
+async def get_house_type(callback: CallbackQuery, state: FSMContext):
+    value = callback.data.replace("house_", "")
+    await state.update_data(house_type=value)
+    await callback.message.edit_text(f"Uy holati: {value}")
+    await callback.message.answer("Telefon raqamingizni necha yildan beri ishlatasiz? (son, masalan: 3):")
+    await state.set_state(ArizaForm.phone_years)
+    await callback.answer()
