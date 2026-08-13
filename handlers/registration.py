@@ -113,3 +113,13 @@ async def get_house_type(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Telefon raqamingizni necha yildan beri ishlatasiz? (son, masalan: 3):")
     await state.set_state(ArizaForm.phone_years)
     await callback.answer()
+
+
+@router.message(ArizaForm.phone_years)
+async def get_phone_years(message: Message, state: FSMContext):
+    if not message.text.isdigit():
+        await message.answer("Iltimos, faqat son kiriting (masalan: 3):")
+        return
+    await state.update_data(phone_years=int(message.text))
+    await message.answer("Kafil (yaqin odam) bormi?", reply_markup=yes_no_kb())
+    await state.set_state(ArizaForm.guarantor)
