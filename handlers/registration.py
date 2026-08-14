@@ -133,3 +133,12 @@ async def get_guarantor(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Qaysi mahsulot olmoqchisiz?")
     await state.set_state(ArizaForm.product)
     await callback.answer()
+
+@router.message(ArizaForm.product)
+async def get_product(message: Message, state: FSMContext):
+    await state.update_data(product=message.text)
+    await message.answer(
+        "Hozirda boshqa kredit yoki to'lovlaringiz bormi?",
+        reply_markup=yes_no_kb("Bor", "Yo'q")
+    )
+    await state.set_state(ArizaForm.other_credit)
