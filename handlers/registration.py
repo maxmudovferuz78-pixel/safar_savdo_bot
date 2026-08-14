@@ -142,3 +142,18 @@ async def get_product(message: Message, state: FSMContext):
         reply_markup=yes_no_kb("Bor", "Yo'q")
     )
     await state.set_state(ArizaForm.other_credit)
+
+
+@router.callback_query(ArizaForm.other_credit, F.data.startswith("yn_"))
+async def get_other_credit(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    value = callback.data.replace("yn_", "")
+    await state.update_data(other_credit=value)
+    await callback.message.edit_text(f"Boshqa kredit: {value}")
+
+    if value == "Bor":
+        await callback.message.answer("Oylik to'lov miqdori qancha? (so'mda yozing):")
+        await state.set_state(ArizaForm.other_credit_amount)
+    else:
+        await state.update_data(other_credit_amount=0)
+        await finish_application(callback.message, state, bot, callback.from_user)
+    await callback.answer()
