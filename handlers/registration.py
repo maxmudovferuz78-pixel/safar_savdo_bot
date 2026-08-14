@@ -167,3 +167,37 @@ async def get_other_credit_amount(message: Message, state: FSMContext, bot: Bot)
         return
     await state.update_data(other_credit_amount=int(cleaned))
     await finish_application(message, state, bot, message.from_user)
+
+
+async def finish_application(message: Message, state: FSMContext, bot: Bot, user):
+    data = await state.get_data()
+    data["user_id"] = user.id
+    score = calculate_score(data)
+
+    await save_application(data, score)
+    await state.clear()
+
+    await message.answer(
+        "Rahmat! ✅\nMa'lumotlaringiz tekshirilmoqda...\nTez orada siz bilan bog'lanamiz."
+    )
+
+    text = (
+        f"🆕 <b>Yangi ariza</b>\n\n"
+        f"👤 Ism: {data['full_name']}\n"
+        f"🎂 Tug'ilgan yil: {data['birth_year']}\n"
+        f"📞 Tel: {data['phone']}\n"
+        f"💼 Ish: {data['workplace']}\n"
+        f"💰 Daromad: {data['income']:,} so'm\n"
+        f"👨‍👩‍👧 Oilaviy holat: {data['family_status']}\n"
+        f"📍 Manzil: {data['address']}\n"
+        f"🏠 Uy: {data['house_type']}\n"
+        f"📱 Raqam yoshi: {data['phone_years']} yil\n"
+        f"🤝 Kafil: {data['guarantor']}\n"
+        f"🛒 Mahsulot: {data['product']}\n"
+        f"💳 Boshqa kredit: {data['other_credit']}"
+        + (f" ({data['other_credit_amount']:,} so'm/oy)" if data['other_credit'] == "Bor" else "") +
+        f"\n\n⭐ <b>Ball: {score}/85</b>\n"
+        f"🆔 User ID: <code>{user.id}</code>\n"
+        f"👤 Username: @{user.username if user.username else '-'}"
+    )
+    await bot.send_message(ADMIN_GROUP_ID, text, reply_markup=admin_ariza_kb(user.id), parse_mode="HTML")
