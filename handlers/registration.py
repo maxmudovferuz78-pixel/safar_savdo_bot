@@ -157,3 +157,13 @@ async def get_other_credit(callback: CallbackQuery, state: FSMContext, bot: Bot)
         await state.update_data(other_credit_amount=0)
         await finish_application(callback.message, state, bot, callback.from_user)
     await callback.answer()
+
+
+@router.message(ArizaForm.other_credit_amount)
+async def get_other_credit_amount(message: Message, state: FSMContext, bot: Bot):
+    cleaned = message.text.replace(" ", "").replace(",", "")
+    if not cleaned.isdigit():
+        await message.answer("Iltimos, faqat raqam kiriting:")
+        return
+    await state.update_data(other_credit_amount=int(cleaned))
+    await finish_application(message, state, bot, message.from_user)
