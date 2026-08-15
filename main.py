@@ -30,3 +30,26 @@ dp = Dispatcher(storage=MemoryStorage())
 dp.include_router(registration.router)
 dp.include_router(debt.router)
 dp.include_router(payment.router)
+
+
+@dp.message(CommandStart())
+async def cmd_start(message: Message):
+    await message.answer(
+        "Assalomu alaykum! 👋\nSafar Savdo botiga xush kelibsiz.\n\n"
+        "📋 /ariza — nasiyaga ariza topshirish\n"
+        "💰 /qarz — qarzdorligingizni tekshirish\n"
+        "💳 /tolov — filialga to'lov qilish"
+    )
+
+
+async def main():
+    await init_db()
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+        await dp.start_polling(bot)
+    finally:
+        await close_db()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
